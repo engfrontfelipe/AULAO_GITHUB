@@ -1,0 +1,50 @@
+document.getElementById('meuBotao').addEventListener('click', async () => {
+        const texto = document.getElementById('meuInput').value;
+        if(!texto) return alert('Digite algo para salvar!');
+
+        try {
+            // 1. Enviando o dado via POST para a nossa API no BackEnd
+            const resposta = await fetch('http://localhost:3000/api/mensagem', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensagem: texto })
+            });
+            
+            // 2. Recebendo as instruções de alteração vindas do servidor
+            const dadosDoServidor = await resposta.json();
+            
+            // 3. Atualizando a Interface com os dados que o BackEnd mandou!
+            document.getElementById('titulo').innerText = dadosDoServidor.novoTitulo;
+            document.getElementById('subtitulo').innerText = dadosDoServidor.novoSubtitulo;
+            document.getElementById('imagem').src = dadosDoServidor.novaImagem;
+
+            // 4. Recarrega a lista chamando o banco e limpa o input
+            carregarMensagens(); 
+            document.getElementById('meuInput').value = '';
+        } catch (erro) {
+            alert('Erro ao conectar com o BackEnd. O servidor Node.js está rodando?');
+        }
+    });
+
+    // Função para buscar dados salvos no JSON através do BackEnd (GET)
+    async function carregarMensagens() {
+        try {
+            const resposta = await fetch('http://localhost:3000/api/mensagens');
+            const mensagens = await resposta.json();
+            
+            const divResultado = document.getElementById('resultado');
+            divResultado.innerHTML = ''; // Limpa a lista antes de renderizar
+            
+            mensagens.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerText = item.mensagem;
+                divResultado.appendChild(div);
+            });
+        } catch (error) {
+            console.log("Aguardando inicialização do servidor para carregar dados...");
+        }
+    }
+
+    // Tenta carregar a lista ao abrir a página
+    carregarMensagens();
